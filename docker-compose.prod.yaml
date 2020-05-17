@@ -1,0 +1,63 @@
+version: "3.6"
+services:
+    # name of our container
+    my-first-app:
+        build:
+            context: .
+        ports:
+            - "3000:3000"
+        # tell docker to always restart the container if it stops
+        restart: "always"
+        environment:
+            # Can be multiple host names separated by comma. This is used by
+            # the reverse proxy to dispatch the request.
+            - VIRTUAL_HOST=example.domain
+            # This must match what the application is listening at.
+            - VIRTUAL_PORT=3000
+            # The domain name that will be in the generated certificate.
+            - LETSENCRYPT_HOST=example.domain
+            # Email used to
+            - LETSENCRYPT_EMAIL=hi@example.com
+    # reverse proxy that terminates the https and pass the request to
+    # our application that only handles http
+    nginx-proxy:
+        image: jwilder/nginx-proxy
+        container_name: nginx-proxy
+        restart: "always"
+        ports:
+            - "80:80"
+            - "443:443"
+        # docker volumes that is shared between this container and its companion
+        # that is responsible to talk to let's encrypt to generate certificate
+        # for our domain
+        volumes:
+            - conf:/etc/nginx/conf.d
+            - vhost:/etc/nginx/vhost.d
+            - html:/usr/share/nginx/html
+            - dhparam:/etc/nginx/dhparam
+            - certs:/etc/nginx/certs:ro
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+
+    nginx-proxy-letsencrypt:
+        image: jrcs/letsencrypt-nginx-proxy-companion
+        container_name: nginx-proxy-le
+        restart: "always"
+        environment:
+            - DEFAULT_EMAIL=nullptroom@gmail.com
+            # The name of nginx-proxy container, required to reload the proxy once
+            # the certificate is generated
+            - NGINX_PROXY_CONTAINER=nginx-proxy
+        volumes:
+            - conf:/etc/nginx/conf.d:rw
+            - vhost:/etc/nginx/vhost.d:rw
+            - html:/usr/share/nginx/html:rw
+            - dhparam:/etc/nginx/dhparam:rw
+            - certs:/etc/nginx/certs:rw
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+    conf:
+    vhost:
+    html:
+    dhparam:
+    certs:

@@ -1,0 +1,13 @@
+version: '3.6'
+services:
+  # name of our container
+  my-first-app: 
+    # tell docker-compose we are building the container from a Dockerfile
+    build:
+      # the build process should run in the current director,
+      # where the Dockerfile is located
+      context: . 
+    ports:
+        # Maps the host's port 3000 to the container's port 3000
+        # Similar to the -p option used with docker run
+        - "3000:3000"
