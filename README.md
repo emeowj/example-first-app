@@ -1,0 +1,1 @@
+Code from my [blog post](https://blog.6ginger.com/post/2020/05/16/depoly-your-first-app.html) on how to depoly your application to the cloud with docker and docker-compose.
